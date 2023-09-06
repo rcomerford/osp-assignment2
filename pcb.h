@@ -25,9 +25,6 @@ class pcb
     // Time used so far for this process.
     time_type time_used;
 
-    // Priority level for this process.
-    // TODO add.
-
     // Time process has spent waiting for CPU.
     time_type total_wait_time;
 
