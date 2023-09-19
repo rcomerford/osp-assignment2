@@ -1,31 +1,31 @@
-FIFO_DIR 	 := ./fifo_files
-SJF_DIR := ./sjr_files
-RR_DIR := ./rr_files
+FIFO := fifo
+SJF := sjf
+RR := rr
+
+FIFO_DIR 	 := ./$(FIFO)_files
+SJF_DIR := ./$(SJF)_files
+RR_DIR := ./$(RR)_files
 
 .default: all
-
 all: fifo sjf rr
 
 clean:
-	rm -rf copier mtcopier $(FIFO_DIR)/*.o $(SJF_DIR)/*.o *.o $(RR_DIR)/*.o *.o
+	rm -rf $(FIFO) $(SJF) $(RR) $(FIFO_DIR)/*o $(SJF_DIR)/*o $(RR_DIR)/*o *.o
 
-# copier: $(COPIER_DIR)/main.o $(COPIER_DIR)/reader.o $(COPIER_DIR)/writer.o
-# 	g++ -Wall -Werror -std=c++20 -o $@ $^
+fifo: $(FIFO_DIR)/$(FIFO)_main.o $(FIFO_DIR)/$(FIFO).o loader.o simulator.o
+	g++ -Wall -Werror -std=c++20 -o $@ $^
 
-# mtcopier: $(MTCOPIER_DIR)/main.o $(MTCOPIER_DIR)/reader.o $(MTCOPIER_DIR)/writer.o
-# 	g++ -Wall -Werror -std=c++20 -lpthread -o $@ $^
+sjf: $(SJF_DIR)/$(SJF)_main.o $(SJF_DIR)/$(SJF).o loader.o simulator.o
+	g++ -Wall -Werror -std=c++20 -o $@ $^
 
-fifo:
-	g++ ?
+rr: $(RR_DIR)/$(RR)_main.o $(RR_DIR)/$(RR).o loader.o simulator.o
+	g++ -Wall -Werror -std=c++20 -o $@ $^
 
-sjf:
-	g++ ?
+$(FIFO_DIR)/%.o: %.cpp
+	g++ -Wall -Werror -std=c++20 -c $^
 
-rr:
-	g++ ?
+$(SJF_DIR)/%.o: %.cpp
+	g++ -Wall -Werror -std=c++20 -c $^
 
-# $(COPIER_DIR)/%.o: %.cpp
-# 	g++ -Wall -Werror -std=c++20 -c $^
-
-# $(MTCOPIER_DIR)/%.o: %.cpp
-# 	g++ -Wall -Werror -std=c++20 -c $^
+$(RR_DIR)/%.o: %.cpp
+	g++ -Wall -Werror -std=c++20 -c $^
