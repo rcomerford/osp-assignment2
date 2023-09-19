@@ -54,6 +54,12 @@ class loader
     public:
 
         /**
+         * Deconstructor.
+         * Deals with the pointers in pcb_list.
+        */
+       ~loader();
+
+        /**
          * Initialise file reading. Takes a file name.
          * Returns a boolean denoting success. 
         */
@@ -64,7 +70,7 @@ class loader
         /**
          * Returns the vector of PCB's read by init().
         */
-        vector<pcb*> loader::getPCBList();
+        vector<pcb*> getPCBList();
         
 };
 

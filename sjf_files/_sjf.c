@@ -1,6 +1,6 @@
-/*
+/**
  * C Program to Implement SJF Scheduling
- */
+*/
  
 #include<stdio.h>
 int main()
