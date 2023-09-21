@@ -27,7 +27,7 @@ class loader
         /**
          * Holds the read PCB's.
         */
-        vector<pcb*> pcb_list;
+        vector<pcb> pcb_list;
 
         /**
          * Reads the given FILE_NAME.
@@ -38,7 +38,7 @@ class loader
          * Converts a string containing <> to a pcb.
          * Returns a pointer to the pcb type for the given string.
         */
-        pcb* parseLine(
+        pcb parseLine(
             const string &LINE
         );
 
@@ -54,23 +54,17 @@ class loader
     public:
 
         /**
-         * Deconstructor.
-         * Deals with the pointers in pcb_list.
-        */
-       ~loader();
-
-        /**
          * Initialise file reading. Takes a file name.
          * Returns a boolean denoting success. 
         */
-        bool init(
+        bool readFile(
             const string& FILE_NAME
         );
 
         /**
          * Returns the vector of PCB's read by init().
         */
-        vector<pcb*> getPCBList();
+        vector<pcb> getPCBList();
         
 };
 

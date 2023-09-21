@@ -1,31 +1,14 @@
 #include "loader.h"
 
-#define FILE_DELIM ','
-
-// global variables, used for debugging
-extern bool IS_DEBUG_MODE;
-
-loader::~loader()
-{
-    // delete pointers then clear vector
-
-    for(int i = 0; i < pcb_list.size(); i++)
-        delete (pcb_list[i]);
-
-    pcb_list.clear();
-}
-
-bool loader::init(
+bool loader::readFile(
     const string& FILE_NAME
 ){
-
-    if(IS_DEBUG_MODE) cout << "LOADER:\tAttempting load with file name: " << FILE_NAME << endl;
+    cout << "LOADER:\tAttempting to load file with name: " << FILE_NAME << endl;
 
     // attempt to open file and return status
     in.open(FILE_NAME);
     if(in)
     {
-        // read each line
         try
         {
             // read each line and parse
@@ -35,36 +18,37 @@ bool loader::init(
         }
         catch(const exception& e)
         {
-            if(IS_DEBUG_MODE) cout << "LOADER:\tFailed to read file." << endl;
-            if(IS_DEBUG_MODE) cerr << "LOADER:\t" << e.what() << endl;
+            cerr << "LOADER:\tFailed while reading file. Error: " << e.what() << endl;
+            return false;
         }
     }
-    else
-    {
-        // return fail status if file cannot be opened
-        if(IS_DEBUG_MODE) cout << "LOADER:\tFailed to open file." << endl;
-    }
 
-    return false;
+    cout << "LOADER:\tCompleted loading file." << endl;
+    return true;
 }
 
-vector<pcb*> loader::getPCBList()
+vector<pcb> loader::getPCBList()
 {
     return pcb_list;
 }
 
-
-pcb* loader::parseLine(
+pcb loader::parseLine(
     const string &LINE
 ){
     const vector<string> SPLIT_LINE = splitString(LINE, FILE_DELIM);
 
-    // pcb variables
-    // exceptions here caught by init()
+    // pcb variables, exceptions here caught by init()
     const int PROCESS_ID = stoi(SPLIT_LINE[0]);
     const int BURST_TIME = stoi(SPLIT_LINE[1]);
 
-    pcb* new_pcb = new pcb(
+    // pcb variables error checking
+    if(PROCESS_ID < 0)
+        throw std::invalid_argument("invalid process_id");
+
+    if(BURST_TIME < 0)
+        throw std::invalid_argument("invalid burst_time");
+
+    pcb new_pcb = pcb(
         PROCESS_ID,
         BURST_TIME
     );
