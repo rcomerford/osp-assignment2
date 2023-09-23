@@ -3,7 +3,7 @@
 
 #include "types.h"
 #include "pcb.h"
-#include <vector>
+#include <deque>
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
@@ -13,10 +13,14 @@
 #define SJF "sjf"
 #define RR "rr"
 
-using std::vector;
-using std::find_if;
+using std::deque;
 using std::setw;
 using std::string;
+using std::min_element;
+using std::distance;
+using std::begin;
+using std::rotate;
+using std::runtime_error;
 
 using namespace osp2023;
 
@@ -32,7 +36,12 @@ class simulator
         /**
          * Queue of processes (PCBs) waiting to be run.
         */
-        vector<pcb> ready_queue;
+        deque<pcb*> ready_queue;
+
+        /**
+         * The time quantum to use, when set to -1 will run the entire process.
+        */
+        time_type quantum;
 
         /**
          * Stats tracking for all processes.
@@ -49,16 +58,24 @@ class simulator
          * Constructor which copies parsed PCBs into the ready_queue.
         */
         simulator(
-            const string SCHEDULING_ALGO,
-            const vector<pcb> PCB_LIST
+            const string& SCHEDULING_ALGO,
+            const deque<pcb*>& PCB_LIST,
+            const time_type& QUANTUM
         );
 
         /**
          * Run the main loop, asking the scheduler for the id of the next process.
-         * Overridden by rr derived class only.
-         * Returns a boolean denoting success.
         */
-        bool run_simulator();
+        void run_simulator();
+
+        /**
+         * Simulates "running" the process defined by the given PCB.
+         * Returns the time used by the proccess in the current burst.
+        */
+        time_type run_process(
+            pcb* process,
+            const time_type& QUANTUM
+        );
 
         /**
          * Scheduling algorithms, each returns the id of the next process.

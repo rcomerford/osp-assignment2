@@ -1,90 +1,122 @@
 #include "simulator.h"
 
 simulator::simulator(
-    const string SCHEDULING_ALGO,
-    const vector<pcb> PCB_LIST
+    const string& SCHEDULING_ALGO,
+    const deque<pcb*>& PCB_LIST,
+    const time_type& QUANTUM
 ){
-    // the algorithm to use to get next process
     scheduling_algo = SCHEDULING_ALGO;
-
-    // add all pcb's into the ready queue
     ready_queue = PCB_LIST;
-
-    // record number of processes given to sim
+    quantum = QUANTUM;
     num_processes = ready_queue.size();
-
-    // initialise cumulative stats
-    running_waiting = 0;
     total_turnaround = 0;
     total_waiting = 0;
     total_response = 0;
 }
 
-bool simulator::run_simulator()
+void simulator::run_simulator()
 {
     print_header();
+    time_type curr_time = 0;
 
     while(ready_queue.size() > 0)
     {
-        // ask the current scheduler for next process to run
-        int NEXT_INDEX;
+        // ask the current algorithm what the index of the next process is
+        int next_index = 0;
 
-        // get the index of the next process to run
         if(scheduling_algo.compare(FIFO) == 0)
-        {
-            NEXT_INDEX = fifo_schedule();
-        }
+            next_index = fifo_schedule();
         else if(scheduling_algo.compare(SJF) == 0)
-        {
-            NEXT_INDEX = sjf_schedule();
-        }
+            next_index = sjf_schedule();
         else if(scheduling_algo.compare(RR) == 0)
+            next_index = rr_schedule();
+        else
+            throw runtime_error("Invalid scheduling algorithm.");
+
+        // get next process (& iterator) from index
+        pcb* curr_process = ready_queue.at(next_index);
+        auto curr_iterator = ready_queue.begin() + next_index;
+
+        // if first time process has CPU, record response time
+        if(curr_process->get_time_used() == 0)
+            curr_process->set_response_time(curr_time);
+
+        // "run" process, either for the quantum or for its entire burst time
+        time_type curr_quantum = (quantum == -1) ? curr_process->get_burst_time() : quantum;
+        time_type time_used = run_process(curr_process, curr_quantum);
+
+        // add time used by process to curr_time
+        curr_time += time_used;
+
+        // if process is completed
+        if(curr_process->get_burst_time() == curr_process->get_time_used())
         {
-            NEXT_INDEX = rr_schedule();
-        }
+            // calculate stats
+            curr_process->calculate_total_wait_time(curr_time);
+            curr_process->calculate_turnaround_time(curr_time);
+
+            // record all stats to totals
+            total_turnaround += curr_process->get_turnaround_time();
+            total_waiting += curr_process->get_total_wait_time();
+            total_response += curr_process->get_response_time();
+
+            // print details
+            curr_process->print_details();
+
+            // remove process from ready queue
+            ready_queue.erase(curr_iterator);
+        } 
         else
         {
-            return false;
+            // move to back of ready queue
+            rotate(curr_iterator, curr_iterator + 1, ready_queue.end());
         }
-
-        // get the pcb for the process to be run
-        pcb CURR_PROCESS = ready_queue[NEXT_INDEX];
-
-        // "run" the process, details automatically print once process completes
-        CURR_PROCESS.run(
-            CURR_PROCESS.get_burst_time(),
-            running_waiting
-        );
-
-        // keep track of stats for averages
-        total_waiting += running_waiting;
-        total_turnaround += (running_waiting + CURR_PROCESS.get_burst_time());
-        total_response += CURR_PROCESS.get_total_wait_time();
-        running_waiting += CURR_PROCESS.get_burst_time();
-
-        // remove process from ready queue once "executed"
-        ready_queue.erase(ready_queue.begin() + NEXT_INDEX);
     }
+}
 
-    return true;
+time_type simulator::run_process(
+    pcb* process,
+    const time_type& QUANTUM
+){
+    // cpu time used for the current time slice
+    time_type time_used;
+
+    // if process will finish in the current time slice, use only the remaining time
+    if(process->get_time_used() + QUANTUM > process->get_burst_time())
+        time_used = process->get_burst_time() - process->get_time_used();
+    else
+        time_used = QUANTUM;
+
+    // add to total CPU time
+    process->add_to_time_used(time_used);
+
+    return time_used;
 }
 
 int simulator::fifo_schedule()
 { 
-    // always run the first job in the ready queue
+    // always run the first (0th) job in the ready queue
     return 0; 
 }
 
 int simulator::sjf_schedule()
 { 
-    // TODO sjf
-    return -1; 
+    // find job with smallest time, could also be achieved by sorting the queue first
+    auto min_iter = min_element(
+        ready_queue.begin(), 
+        ready_queue.end(), 
+        [](const pcb* lhs, const pcb* rhs) {
+            return (lhs->get_burst_time() < rhs->get_burst_time());
+        }
+    );
+
+    const int MIN_PCB_INDEX = distance(begin(ready_queue), min_iter);
+    return MIN_PCB_INDEX; 
 }
 
 int simulator::rr_schedule()
-{ 
-    // TODO rr
-    return -1; 
+{
+    return 0;
 }
 
 void simulator::print_header()

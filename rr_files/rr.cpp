@@ -45,19 +45,22 @@ int main(
     {
         cerr << "ERROR:\t" << "Quantum must be greater than 0." << endl;
     }
-    else if(!ld.readFile(argv[1]))
+    else if(!ld.readFile(argv[2]))
     {
         cerr << "ERROR:\t" << "Failed to read file: " << argv[1] << endl;
     }
     else
     {
         // get pcb's loaded from file
-        vector<pcb> all_processes = ld.getPCBList();
+        deque<pcb*> all_processes = ld.getPCBList();
 
         // initialise simulator
+        time_type QUANTUM = stoi(argv[1]);
+        
         simulator sim = simulator(
             SCHEDULING_ALGO,
-            all_processes
+            all_processes,
+            QUANTUM
         );
 
         // run simulation then print averages

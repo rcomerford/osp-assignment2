@@ -1,5 +1,15 @@
 #include "loader.h"
 
+loader::loader(){}
+
+loader::~loader()
+{
+    for (int i = 0; i < pcb_list.size(); ++i)
+        delete pcb_list[i];
+
+    pcb_list.clear();
+}
+
 bool loader::readFile(
     const string& FILE_NAME
 ){
@@ -27,12 +37,12 @@ bool loader::readFile(
     return true;
 }
 
-vector<pcb> loader::getPCBList()
+deque<pcb*> loader::getPCBList()
 {
     return pcb_list;
 }
 
-pcb loader::parseLine(
+pcb* loader::parseLine(
     const string &LINE
 ){
     const vector<string> SPLIT_LINE = splitString(LINE, FILE_DELIM);
@@ -43,12 +53,12 @@ pcb loader::parseLine(
 
     // pcb variables error checking
     if(PROCESS_ID < 0)
-        throw std::invalid_argument("invalid process_id");
+        throw invalid_argument("invalid process_id");
 
     if(BURST_TIME < 0)
-        throw std::invalid_argument("invalid burst_time");
+        throw invalid_argument("invalid burst_time");
 
-    pcb new_pcb = pcb(
+    pcb* new_pcb = new pcb(
         PROCESS_ID,
         BURST_TIME
     );
@@ -57,8 +67,8 @@ pcb loader::parseLine(
 }
 
 vector<string> loader::splitString(
-    const string &STRING, 
-    const char DELIM
+    const string& STRING, 
+    const char& DELIM
 ){
     vector<string> output;
     string item;

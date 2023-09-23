@@ -24,12 +24,15 @@ int main(
     else
     {
         // get pcb's loaded from file
-        vector<pcb> all_processes = ld.getPCBList();
+        deque<pcb*> all_processes = ld.getPCBList();
 
         // initialise simulator
+        time_type QUANTUM = -1;
+
         simulator sim = simulator(
             SCHEDULING_ALGO,
-            all_processes
+            all_processes,
+            QUANTUM
         );
 
         // run simulation then print averages

@@ -22,7 +22,7 @@ class pcb
         time_type burst_time;
 
         // Time used so far for this process.
-        time_type time_used;
+        time_type total_time_used;
 
         // Time process has spent waiting for CPU.
         time_type total_wait_time;
@@ -30,16 +30,13 @@ class pcb
         // Time it took for the process to first get on the CPU.
         time_type response_time;
 
+        // Time it took for the process to complete from arrival time.
+        time_type turnaround_time;
+
     public:
 
         /**
-         * The maximum and minimum duration for a system process.
-        */
-        static constexpr time_type MAX_DURATION = 100;
-        static constexpr time_type MIN_DURATION = 10;
-
-        /**
-         * PCB constructor given arguments from data file.
+         * Constructor, given arguments from data file.
         */
         pcb(
             const int& PROCESS_ID,
@@ -47,26 +44,27 @@ class pcb
         );
 
         /**
-         * 
+         * Prints the stats and details of the process.
         */
-        void run(
-            const time_type& QUANTUM,
-            const time_type& WAIT_ADD
-        );
+        void print_details() const;
 
         /**
-         * Prints the stats and details of the process (once finished).
+         * Modification functions (setters), used by the simulator.
         */
-        void print() const;
+        void add_to_time_used(const time_type& TIME_USED);
+        void set_response_time(const time_type& RESPONSE_TIME);
+        void calculate_total_wait_time(const time_type& CURRENT_TIME);
+        void calculate_turnaround_time(const time_type& CURRENT_TIME);
 
         /**
          * Getters.
         */
-        id_type   get_id() const;
+        id_type get_process_id() const;
         time_type get_burst_time() const;
-        time_type get_time_used() const;
         time_type get_total_wait_time() const;
+        time_type get_turnaround_time() const;
         time_type get_response_time() const;
+        time_type get_time_used() const;
 
 };
 
