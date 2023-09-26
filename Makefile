@@ -12,13 +12,13 @@ all: fifo sjf rr
 clean:
 	rm -rf $(FIFO) $(SJF) $(RR) $(FIFO_DIR)/*o $(SJF_DIR)/*o $(RR_DIR)/*o *.o
 
-fifo: $(FIFO_DIR)/$(FIFO).o loader.o simulator.o pcb.o
+fifo: $(FIFO_DIR)/main.o $(FIFO_DIR)/$(FIFO).o loader.o simulator.o pcb.o
 	g++ -Wall -Werror -std=c++20 -o $@ $^
 
-sjf: $(SJF_DIR)/$(SJF).o loader.o simulator.o pcb.o
+sjf: $(SJF_DIR)/main.o $(SJF_DIR)/$(SJF).o loader.o simulator.o pcb.o
 	g++ -Wall -Werror -std=c++20 -o $@ $^
 
-rr: $(RR_DIR)/$(RR).o loader.o simulator.o pcb.o
+rr: $(RR_DIR)/main.o $(RR_DIR)/$(RR).o loader.o simulator.o pcb.o
 	g++ -Wall -Werror -std=c++20 -o $@ $^
 
 $(FIFO_DIR)/%.o: %.cpp

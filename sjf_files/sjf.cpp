@@ -1,44 +1,49 @@
-#include "../loader.h"
-#include "../simulator.h"
-#include <cstdlib>
+#include "sjf.h"
 
-#define NUM_ARGS 2
-#define SCHEDULING_ALGO "sjf"
+void sjf::run_simulator()
+{
+    print_header();
+    time_type curr_time = 0;
 
-int main(
-    int argc, 
-    char const *argv[]
-){
-    // create loader instance
-    loader ld = loader();
-
-    // validation command line arguments
-    if(argc != NUM_ARGS)
+    while(ready_queue.size() > 0)
     {
-        cerr << "ERROR:\t" << "Program must be run in format: ./" << SCHEDULING_ALGO << " <datafile>" << endl;
-    }
-    else if(!ld.readFile(argv[1]))
-    {
-        cerr << "ERROR:\t" << "Failed to read file: " << argv[1] << endl;
-    }
-    else
-    {
-        // get pcb's loaded from file
-        deque<pcb*> all_processes = ld.getPCBList();
+        // ask the current algorithm what the index of the next process is
+        int next_index = sjf_schedule();
 
-        // initialise simulator
-        time_type QUANTUM = -1;
+        // get next process (& iterator) from index
+        pcb* curr_process = ready_queue.at(next_index);
+        auto curr_iterator = ready_queue.begin() + next_index;
 
-        simulator sim = simulator(
-            SCHEDULING_ALGO,
-            all_processes,
-            QUANTUM
-        );
+        // if first time process has CPU, record response time
+        if(curr_process->get_time_used() == 0)
+            curr_process->set_response_time(curr_time);
 
-        // run simulation then print averages
-        sim.run_simulator();
-        sim.print_averages();
+        // "run" process  for its entire burst time
+        time_type time_used = run_process(curr_process, curr_process->get_burst_time());
+
+        // add time used by process to curr_time
+        curr_time += time_used;
+
+        // calculate stats
+        curr_process->calculate_total_wait_time(curr_time);
+        curr_process->calculate_turnaround_time(curr_time);
+
+        // record all stats to totals
+        total_turnaround += curr_process->get_turnaround_time();
+        total_waiting += curr_process->get_total_wait_time();
+        total_response += curr_process->get_response_time();
+
+        // print details
+        curr_process->print_details();
+
+        // remove process from ready queue
+        ready_queue.erase(curr_iterator);
     }
-    
-    return EXIT_SUCCESS;
+}
+
+int sjf::sjf_schedule()
+{ 
+    // always run the first (0th) job in the ready queue
+    // same as fifo. queue is sorted in sjf main file.
+    return 0;
 }

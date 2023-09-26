@@ -1,72 +1,58 @@
-#include "../loader.h"
-#include "../simulator.h"
-#include <cstdlib>
+#include "rr.h"
 
-#define NUM_ARGS 3
-#define SCHEDULING_ALGO "rr"
-
-using std::stoi;
-
-/**
- * Validates INTEGER command-line input.
-*/
-bool isNumber(const string& s)
+void rr::run_simulator()
 {
-    bool result = true;
-    int size = s.length();
+    print_header();
+    time_type curr_time = 0;
 
-    for(int i = 0; i < size; i++) 
+    while(ready_queue.size() > 0)
     {
-        char ch = s[i];
-        if(!isdigit(ch)) 
-            result = false;
-    }
+        // ask the current algorithm what the index of the next process is
+        int next_index = rr_schedule();
 
-    return result;
+        // get next process (& iterator) from index
+        pcb* curr_process = ready_queue.at(next_index);
+        auto curr_iterator = ready_queue.begin() + next_index;
+
+        // if first time process has CPU, record response time
+        if(curr_process->get_time_used() == 0)
+            curr_process->set_response_time(curr_time);
+
+        // "run" process, either for the quantum or for its burst time, whichever is shorter
+        time_type time_used = run_process(curr_process, quantum);
+
+        // add time used by process to curr_time
+        curr_time += time_used;
+
+        // if process is completed
+        if(curr_process->get_burst_time() == curr_process->get_time_used())
+        {
+            // calculate stats
+            curr_process->calculate_total_wait_time(curr_time);
+            curr_process->calculate_turnaround_time(curr_time);
+
+            // record all stats to totals
+            total_turnaround += curr_process->get_turnaround_time();
+            total_waiting += curr_process->get_total_wait_time();
+            total_response += curr_process->get_response_time();
+
+            // print details
+            curr_process->print_details();
+
+            // remove process from ready queue
+            ready_queue.erase(curr_iterator);
+        } 
+        else
+        {
+            // move to back of ready queue
+            rotate(curr_iterator, curr_iterator + 1, ready_queue.end());
+        }
+    }
 }
 
-int main(
-    int argc, 
-    char const *argv[]
-){
-    // create loader instance
-    loader ld = loader();
-
-    // validation command line arguments
-    if(argc != NUM_ARGS)
-    {
-        cerr << "ERROR:\t" << "Program must be run in format: ./" << SCHEDULING_ALGO << " <quantum> <datafile>" << endl;
-    }
-    else if(!isNumber(argv[1]))
-    {
-        cerr << "ERROR:\t" << "Quantum must be a number." << endl;
-    }
-    else if(stoi(argv[1]) <= 0)
-    {
-        cerr << "ERROR:\t" << "Quantum must be greater than 0." << endl;
-    }
-    else if(!ld.readFile(argv[2]))
-    {
-        cerr << "ERROR:\t" << "Failed to read file: " << argv[1] << endl;
-    }
-    else
-    {
-        // get pcb's loaded from file
-        deque<pcb*> all_processes = ld.getPCBList();
-
-        // initialise simulator
-        time_type QUANTUM = stoi(argv[1]);
-        
-        simulator sim = simulator(
-            SCHEDULING_ALGO,
-            all_processes,
-            QUANTUM
-        );
-
-        // run simulation then print averages
-        sim.run_simulator();
-        sim.print_averages();
-    }
-    
-    return EXIT_SUCCESS;
+int rr::rr_schedule()
+{ 
+    // similar to fifo, always run the first (0th) job in the ready queue
+    // with unfinished jobs pushed to the back of the queue by run_simulator
+    return 0; 
 }

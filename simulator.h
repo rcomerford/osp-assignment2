@@ -26,12 +26,7 @@ using namespace osp2023;
 
 class simulator
 {
-    private:
-
-        /**
-         * The scheduling algorithm to use.
-        */
-       string scheduling_algo;
+    protected:
 
         /**
          * Queue of processes (PCBs) waiting to be run.
@@ -39,7 +34,7 @@ class simulator
         deque<pcb*> ready_queue;
 
         /**
-         * The time quantum to use, when set to -1 will run the entire process.
+         * The time quantum to use for rr.
         */
         time_type quantum;
 
@@ -52,22 +47,6 @@ class simulator
         time_type total_waiting;
         time_type total_response;
 
-    public:
-
-        /**
-         * Constructor which copies parsed PCBs into the ready_queue.
-        */
-        simulator(
-            const string& SCHEDULING_ALGO,
-            const deque<pcb*>& PCB_LIST,
-            const time_type& QUANTUM
-        );
-
-        /**
-         * Run the main loop, asking the scheduler for the id of the next process.
-        */
-        void run_simulator();
-
         /**
          * Simulates "running" the process defined by the given PCB.
          * Returns the time used by the proccess in the current burst.
@@ -77,12 +56,22 @@ class simulator
             const time_type& QUANTUM
         );
 
+    public:
+
         /**
-         * Scheduling algorithms, each returns the id of the next process.
+         * Constructors, for fifo/sjf and rr.
+        */     
+        simulator(const deque<pcb*>& PCB_LIST);
+        simulator(
+            const deque<pcb*>& PCB_LIST,
+            const time_type& QUANTUM
+        );
+
+        /**
+         * Run the main loop, asking the scheduler for the id of the next process.
+         * Implemented by each of the child classes.
         */
-        int fifo_schedule();
-        int sjf_schedule();
-        int rr_schedule();
+        void run_simulator();
 
         /**
          * Print functions.
